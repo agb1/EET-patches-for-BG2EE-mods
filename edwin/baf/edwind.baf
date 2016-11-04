@@ -12,6 +12,7 @@ IF
   Global("EddieCantGetDrunk","GLOBAL",3)
 THEN
   RESPONSE #100
+    SetInterrupt(FALSE)
     GiveItemCreate("EDPOTN",Myself,0,0,0)
     MoveViewObject("Edwin",INSTANT)
     Wait(2)
@@ -21,6 +22,7 @@ THEN
     IncrementGlobal("EdwinLoveTalk","LOCALS",1)
     IncrementGlobal("EdwinLoveTalkCheck","GLOBAL",1)
     PlaySong(999990)
+    SetInterrupt(TRUE)
     Interact(Player1)
 END
 

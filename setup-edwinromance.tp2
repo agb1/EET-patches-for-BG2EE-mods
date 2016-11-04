@@ -6,7 +6,7 @@ BACKUP ~edwin/backup~
 AUTHOR ~laufeygreen@hotmail.com~
 
 README ~Edwin/edwinromance-readme.html~
-VERSION ~v2.0.6~
+VERSION ~v2.0.7~
 
 AUTO_TRA ~edwin/tra/%s~
 
@@ -26,8 +26,6 @@ ALWAYS
    * For the purposes of HANDLE_CHARSETS, disregard this variable. It is used elsewhere.
    */
   OUTER_SPRINT tra_path ~%MOD_FOLDER%/tra~
-
-  INCLUDE ~%MOD_FOLDER%/handle_charsets.tpa~
 
   /*
    * An array of the TRA files which should not be converted.
@@ -59,10 +57,10 @@ ALWAYS
     english => cp1252
     french => cp1252
     spanish => cp1252
-    russian = cp1251
-    german = cp1252
-    polish = cp1250
-    schinese = cp936
+    russian => cp1251
+    german => cp1252
+    polish => cp1250
+    schinese => cp936
   END
 */
 
@@ -90,12 +88,13 @@ ALWAYS
    */
   LAF HANDLE_CHARSETS
     INT_VAR
-      infer_charset = 1
+      infer_charsets = 1
     STR_VAR
       tra_path = EVAL ~%MOD_FOLDER%/tra~
       // charset_table = fl#charsets // Included for illustrative purposes.
       noconvert_array = fl#noconvert
       reload_array = fl#reload
+      default_language = english
   END
 END
 
@@ -257,7 +256,6 @@ COPY_EXISTING ~edwinD.bcs~ ~override/edwinD.bcs~
   REPLACE_TEXTUALLY 999991 ~%MxDwina%~
 
 COPY_EXISTING ~ar0802.bcs~ ~override/ar0802.bcs~
-  //REPLACE_BCS_BLOCK ~edwin/baf/ar0802_bot.baf~ ~edwin/baf/ar0802_edwin_romance.baf~
   DECOMPILE_AND_PATCH BEGIN
     REPLACE_TEXTUALLY ~\(Global("SpawnLich","GLOBAL",0)[ %LNL%%TAB%]+InParty("Edwin")\)~
                       ~\1 OR(2) !Global("EdwinRomanceActive","GLOBAL",1) Global("EdwinRomanceNetherScroll","GLOBAL",1)~
@@ -265,7 +263,6 @@ COPY_EXISTING ~ar0802.bcs~ ~override/ar0802.bcs~
   BUT_ONLY
 
 COPY_EXISTING ~DPLAYER2.bcs~ ~override/DPLAYER2.bcs~
-  //REPLACE_BCS_BLOCK ~edwin/baf/DPLAYER2_ORIGINAL.baf~ ~edwin/baf/DPLAYER2_ALT.baf~
   DECOMPILE_AND_PATCH BEGIN
     REPLACE_TEXTUALLY ~\(BreakingPoint()\)~
                       ~\1 !CharName("Edwin",Myself) !CharName("Edwina",Myself)~
@@ -279,15 +276,11 @@ BUT_ONLY
 UNLESS ~EdwinRomanceActive~ //Tsujatha appends the same block
 
 COPY_EXISTING ~edwin.bcs~ ~override/edwin.bcs~
-  //REPLACE_BCS_BLOCK EVALUATE_BUFFER ~edwin/baf/EDWIN_bot.baf~ ~edwin/baf/EDWIN_romance.baf~
-  PATCH_IF FILE_EXISTS_IN_GAME vpbolt.itm AND !GAME_IS ~bg2ee eet~ BEGIN //Nej2
-    REPLACE_BCS_BLOCK EVALUATE_BUFFER ~edwin/baf/nej2/edwin_degardan.baf~ ~edwin/baf/nej2/edwin_degardan_romance.baf~
-  END ELSE PATCH_IF GAME_IS ~bg2ee eet~ BEGIN
-    REPLACE_BCS_BLOCK EVALUATE_BUFFER ~edwin/baf/edwin_degardan_ee.baf~ ~edwin/baf/edwin_degardan_romance_ee.baf~ // different blocks for EE
-  END ELSE BEGIN
-    REPLACE_BCS_BLOCK EVALUATE_BUFFER ~edwin/baf/EDWIN_DEGARDAN.baf~ ~edwin/baf/EDWIN_DEGARDAN_ROMANCE.baf~ //This one is a too much work to turn into REPLACE_TEXTUALLY, says I
-  END
   DECOMPILE_AND_PATCH BEGIN
+    REPLACE_TEXTUALLY ~\(Global("DegardanComes","LOCALS",0)\)~
+                      ~\1 OR(2) Global("EdwinRomanceDegardan","GLOBAL",1) !Global("EdwinRomanceActive","GLOBAL",1)~
+    REPLACE_TEXTUALLY ~\(Global("DegardanComesAgain","LOCALS",0)\)~
+                      ~\1 OR(2) Global("EdwinRomanceDegardan","GLOBAL",3) !Global("EdwinRomanceActive","GLOBAL",1)~
     REPLACE_TEXTUALLY ~\(AreaCheck("AR0800")\)[ %LNL%%TAB%]+\(Global("EdwinTalkedAboutScroll","GLOBAL",0)[ %LNL%%TAB%]+Global("EdwinMentionsOnce","LOCALS",0)\)~
                       ~OR(6) \1 AreaCheck("AR0801") AreaCheck("AR0802") AreaCheck("AR0804") AreaCheck("AR0805") AreaCheck("AR0806") \2 OR(2) !Global("EdwinRomanceActive","GLOBAL",1) Global("EdwinRomanceNetherScroll","GLOBAL",1)~
     REPLACE_TEXTUALLY 999990 ~%MxEdwin%~
@@ -303,9 +296,6 @@ COPY_EXISTING ~cut57c.bcs~ ~override~
                        ActionOverride("edwin",Polymorph(MAGE_MALE_HUMAN))~
   END
 BUT_ONLY
-
-//REPLACE_BCS_BLOCK ~edwin/bcs/cut57old.baf~ ~edwin/bcs/cut57new.baf~ //was commented out in v1.07
-
 
 
 // Creatures
@@ -330,6 +320,11 @@ COPY ~edwin/cre/DEKARAS.cre~ ~override/DEKARAS.cre~
   WRITE_ASCII 0x258 ~dekaras~ #8 // race script
   WRITE_ASCII 0x2CC ~dekaras~ #8 // dialog
   WRITE_ASCII 0x280 ~dekaras~ #32 // death variable
+  LPF ADD_CRE_ITEM_FLAGS
+    STR_VAR
+      item_to_change = "edwxbo01\|edwdag01"
+      flags = "unstealable"
+  END
 
 COPY ~override/DEKARAS.cre~ ~override/DEKARAS1.cre~
   WRITE_ASCII 0x2CC ~dekaras1~ #8 // dialog
